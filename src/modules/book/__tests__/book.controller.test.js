@@ -1,17 +1,17 @@
-import { jest } from "@jest/globals";
+import { vi, describe, it, expect } from "vitest";
 import { createBookController } from "../book.controller.js";
 import { AppError } from "../../../errors/AppError.js";
 
 /**
- * Testes unitários do Book Controller.
+ * Testes unitarios do Book Controller.
  *
- * Aqui mockamos o SERVICE (não o repository nem o Prisma).
- * O controller não sabe nada sobre banco de dados.
+ * Aqui mockamos o SERVICE (nao o repository nem o Prisma).
+ * O controller nao sabe nada sobre banco de dados.
  *
- * Também mockamos os objetos req, res e next do Express:
+ * Tambem mockamos os objetos req, res e next do Express:
  * - req: objeto com body, params e query
- * - res: objeto com métodos status() e json() espiados
- * - next: função para passar erros ao errorHandler
+ * - res: objeto com metodos status() e json() espiados
+ * - next: funcao para passar erros ao errorHandler
  *
  * Testamos se o controller:
  * - Chama o service corretamente
@@ -21,11 +21,11 @@ import { AppError } from "../../../errors/AppError.js";
 
 // Mock do service
 const serviceMock = {
-  create: jest.fn(),
-  findAll: jest.fn(),
-  findById: jest.fn(),
-  update: jest.fn(),
-  delete: jest.fn(),
+  create: vi.fn(),
+  findAll: vi.fn(),
+  findById: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
 };
 
 // Cria o controller com o mock do service
@@ -46,7 +46,7 @@ const mockBook = {
 };
 
 /**
- * Função helper que cria mocks frescos de req, res e next.
+ * Funcao helper que cria mocks frescos de req, res e next.
  * Chamada antes de cada teste para garantir isolamento.
  */
 function createMocks(overrides = {}) {
@@ -58,12 +58,12 @@ function createMocks(overrides = {}) {
   };
 
   const res = {
-    status: jest.fn().mockReturnThis(), // Permite encadear: res.status(201).json(data)
-    json: jest.fn().mockReturnThis(),
-    send: jest.fn().mockReturnThis(),
+    status: vi.fn().mockReturnThis(), // Permite encadear: res.status(201).json(data)
+    json: vi.fn().mockReturnThis(),
+    send: vi.fn().mockReturnThis(),
   };
 
-  const next = jest.fn();
+  const next = vi.fn();
 
   return { req, res, next };
 }
@@ -91,7 +91,7 @@ describe("BookController", () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it("deve chamar next(error) quando o service lança erro", async () => {
+    it("deve chamar next(error) quando o service lanca erro", async () => {
       const error = new AppError("Já existe um livro com este ISBN.", 409);
       serviceMock.create.mockRejectedValue(error);
       const { req, res, next } = createMocks({ body: { isbn: "duplicate" } });
@@ -118,9 +118,9 @@ describe("BookController", () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it("deve chamar next(error) quando a validação de query falha", async () => {
+    it("deve chamar next(error) quando a validacao de query falha", async () => {
       const { req, res, next } = createMocks({
-        query: { page: "abc" }, // inválido — não é número
+        query: { page: "abc" }, // invalido — nao e numero
       });
 
       await controller.findAll(req, res, next);
@@ -140,7 +140,7 @@ describe("BookController", () => {
       expect(res.json).toHaveBeenCalledWith(mockBook);
     });
 
-    it("deve chamar next(error) quando o livro não é encontrado", async () => {
+    it("deve chamar next(error) quando o livro nao e encontrado", async () => {
       const error = new AppError("Livro não encontrado.", 404);
       serviceMock.findById.mockRejectedValue(error);
       const { req, res, next } = createMocks({ params: { id: "nao-existe" } });
@@ -168,7 +168,7 @@ describe("BookController", () => {
       expect(res.json).toHaveBeenCalledWith(updatedBook);
     });
 
-    it("deve chamar next(error) quando o service lança erro", async () => {
+    it("deve chamar next(error) quando o service lanca erro", async () => {
       const error = new AppError("Livro não encontrado.", 404);
       serviceMock.update.mockRejectedValue(error);
       const { req, res, next } = createMocks({
@@ -183,7 +183,7 @@ describe("BookController", () => {
   });
 
   describe("delete", () => {
-    it("deve retornar 204 sem body quando o livro é deletado", async () => {
+    it("deve retornar 204 sem body quando o livro e deletado", async () => {
       serviceMock.delete.mockResolvedValue(mockBook);
       const { req, res, next } = createMocks({ params: { id: "abc-123" } });
 
@@ -194,7 +194,7 @@ describe("BookController", () => {
       expect(res.send).toHaveBeenCalled();
     });
 
-    it("deve chamar next(error) quando o livro não existe", async () => {
+    it("deve chamar next(error) quando o livro nao existe", async () => {
       const error = new AppError("Livro não encontrado.", 404);
       serviceMock.delete.mockRejectedValue(error);
       const { req, res, next } = createMocks({ params: { id: "nao-existe" } });

@@ -1,5 +1,7 @@
 # Guia Educacional: Entendendo a Arquitetura de uma API REST
 
+> **This guide is available in Portuguese only.** Se precisar de uma referencia em ingles, consulte os comentarios no proprio codigo-fonte e o [PATTERNS.md](./PATTERNS.md).
+
 Este documento não é um README. Ele foi escrito como se fosse uma aula — com calma, com analogias, e com a intenção de que você termine a leitura entendendo **por que** cada decisão foi tomada, não apenas **o que** foi feito.
 
 Leia na ordem. Cada seção constrói sobre a anterior.
@@ -79,11 +81,18 @@ learning-api/
 ├── generated/                       # Código gerado pelo Prisma (não editar)
 │   └── prisma/
 ├── src/                             # Código-fonte da aplicação
-│   ├── app.js                       # Configuração do Express (rotas, middlewares)
+│   ├── app.js                       # Configuração do Express (rotas, middlewares, segurança)
 │   ├── server.js                    # Ponto de entrada (só escuta a porta)
 │   ├── lib/
 │   │   └── prisma.js                # Instância singleton do Prisma
 │   ├── modules/
+│   │   ├── auth/                    # Tudo sobre autenticação vive aqui
+│   │   │   ├── auth.schema.js       # Validações Zod (registro, login, refresh)
+│   │   │   ├── auth.repository.js   # Acesso ao banco (User + RefreshToken)
+│   │   │   ├── auth.service.js      # Lógica de negócio (registro, login, refresh, logout)
+│   │   │   ├── auth.controller.js   # Traduz HTTP ↔ lógica
+│   │   │   ├── auth.routes.js       # Define as rotas e monta as camadas
+│   │   │   └── __tests__/           # Testes unitários do módulo
 │   │   └── book/                    # Tudo sobre livros vive aqui
 │   │       ├── book.schema.js       # Validações Zod
 │   │       ├── book.repository.js   # Acesso ao banco de dados
@@ -93,6 +102,7 @@ learning-api/
 │   │       └── __tests__/           # Testes unitários do módulo
 │   ├── middlewares/
 │   │   ├── validate.js              # Middleware de validação Zod
+│   │   ├── authenticate.js          # Middleware de autenticação JWT
 │   │   └── errorHandler.js          # Middleware global de erros
 │   └── errors/
 │       └── AppError.js              # Classe de erro customizada
@@ -215,10 +225,10 @@ Vamos rastrear uma request real: `POST /api/books` com um JSON no body.
 O Express recebe a conexão HTTP e passa por seus middlewares na ordem em que foram registrados:
 
 ```
-express.json()  →  bookRoutes  →  errorHandler
+helmet() → cors() → rateLimit() → express.json() → authRoutes (público) → authenticate() → bookRoutes (protegido) → errorHandler
 ```
 
-O `express.json()` transforma o body da request (que chega como texto) em um objeto JavaScript.
+Os middlewares de segurança (`helmet`, `cors`, `rateLimit`) rodam primeiro. O `express.json()` transforma o body da request (que chega como texto) em um objeto JavaScript. As rotas de autenticação são públicas. Depois vem o middleware `authenticate()` que protege todas as rotas seguintes.
 
 ### Passo 2: O Router encontra a rota
 
@@ -941,7 +951,7 @@ Este projeto cobre os fundamentos. Aqui está o que vem depois, em ordem de prio
 - **TypeScript** — este projeto é JavaScript, mas o mercado Node.js usa TypeScript massivamente. O Prisma brilha com TypeScript (autocomplete e type safety para queries)
 
 ### Evolução da API
-- **Autenticação e autorização** — JWT, middleware de auth, proteção de rotas
+- **Autorização (RBAC)** — adicionar roles (admin, user) e middleware de autorização por rota
 - **Relacionamentos no Prisma** — adicionar entidade `Author` com relação 1:N para `Book`
 - **Testes de integração** — usar `supertest` para testar o fluxo HTTP completo
 - **Docker** — containerizar a aplicação para deploy consistente
