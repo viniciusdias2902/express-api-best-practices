@@ -2,16 +2,16 @@ import { vi, describe, it, expect } from "vitest";
 import { createBookRepository } from "../book.repository.js";
 
 /**
- * Testes unitarios do Book Repository.
+ * Testes unitários do Book Repository.
  *
- * A estrategia aqui e criar um mock do PrismaClient — um objeto falso
+ * A estratégia aqui é criar um mock do PrismaClient — um objeto falso
  * que simula o Prisma sem realmente acessar o banco de dados.
  *
- * Cada metodo do Prisma (create, findMany, findUnique, update, delete)
- * e substituido por uma vi.fn(), que e uma "funcao espia" que:
+ * Cada método do Prisma (create, findMany, findUnique, update, delete)
+ * é substituído por uma vi.fn(), que é uma "função espiã" que:
  * - Registra se foi chamada
  * - Registra com quais argumentos
- * - Pode retornar um valor pre-definido
+ * - Pode retornar um valor pré-definido
  *
  * Isso permite testar se o repository chama o Prisma corretamente,
  * sem depender de um banco real.
@@ -84,7 +84,7 @@ describe("BookRepository", () => {
       const [result, total] = await repository.findMany(options);
 
       expect(prismaMock.$transaction).toHaveBeenCalledWith([
-        undefined, // O resultado de findMany (vi.fn chamada retorna undefined na configuracao do mock)
+        undefined, // O resultado de findMany (vi.fn chamada retorna undefined na configuração do mock)
         undefined, // O resultado de count
       ]);
       expect(result).toEqual(books);
@@ -104,7 +104,7 @@ describe("BookRepository", () => {
       expect(result).toEqual(mockBook);
     });
 
-    it("deve retornar null quando o livro nao existe", async () => {
+    it("deve retornar null quando o livro não existe", async () => {
       prismaMock.book.findUnique.mockResolvedValue(null);
 
       const result = await repository.findById("nao-existe");

@@ -3,15 +3,15 @@ import { createBookService } from "../book.service.js";
 import { AppError } from "../../../errors/AppError.js";
 
 /**
- * Testes unitarios do Book Service.
+ * Testes unitários do Book Service.
  *
- * Aqui mockamos o REPOSITORY (nao o Prisma). O service nao sabe nem
- * precisa saber que o Prisma existe — ele so conhece o repository.
+ * Aqui mockamos o REPOSITORY (não o Prisma). O service não sabe nem
+ * precisa saber que o Prisma existe — ele só conhece o repository.
  *
- * Testamos a logica de negocio:
- * - ISBN duplicado na criacao → erro 409
- * - Livro nao encontrado → erro 404
- * - Verificacao de ISBN ao atualizar
+ * Testamos a lógica de negócio:
+ * - ISBN duplicado na criação → erro 409
+ * - Livro não encontrado → erro 404
+ * - Verificação de ISBN ao atualizar
  * - Montagem correta dos filtros de busca
  */
 
@@ -44,7 +44,7 @@ const mockBook = {
 
 describe("BookService", () => {
   describe("create", () => {
-    it("deve criar um livro quando o ISBN nao existe", async () => {
+    it("deve criar um livro quando o ISBN não existe", async () => {
       repositoryMock.findByIsbn.mockResolvedValue(null);
       repositoryMock.create.mockResolvedValue(mockBook);
 
@@ -64,7 +64,7 @@ describe("BookService", () => {
       expect(result).toEqual(mockBook);
     });
 
-    it("deve lancar AppError 409 quando o ISBN ja existe", async () => {
+    it("deve lançar AppError 409 quando o ISBN já existe", async () => {
       repositoryMock.findByIsbn.mockResolvedValue(mockBook);
 
       const data = {
@@ -123,7 +123,7 @@ describe("BookService", () => {
       });
     });
 
-    it("deve aplicar filtro de genero quando fornecido", async () => {
+    it("deve aplicar filtro de gênero quando fornecido", async () => {
       repositoryMock.findMany.mockResolvedValue([[], 0]);
 
       const query = {
@@ -145,7 +145,7 @@ describe("BookService", () => {
       );
     });
 
-    it("deve calcular o offset correto para paginacao", async () => {
+    it("deve calcular o offset correto para paginação", async () => {
       repositoryMock.findMany.mockResolvedValue([[], 0]);
 
       const query = {
@@ -173,7 +173,7 @@ describe("BookService", () => {
       expect(result).toEqual(mockBook);
     });
 
-    it("deve lancar AppError 404 quando o livro nao existe", async () => {
+    it("deve lançar AppError 404 quando o livro não existe", async () => {
       repositoryMock.findById.mockResolvedValue(null);
 
       await expect(service.findById("nao-existe")).rejects.toThrow(AppError);
@@ -198,7 +198,7 @@ describe("BookService", () => {
       expect(result.pages).toBe(320);
     });
 
-    it("deve lancar AppError 404 quando o livro nao existe", async () => {
+    it("deve lançar AppError 404 quando o livro não existe", async () => {
       repositoryMock.findById.mockResolvedValue(null);
 
       await expect(
@@ -208,7 +208,7 @@ describe("BookService", () => {
       });
     });
 
-    it("deve lancar AppError 409 ao trocar para um ISBN ja existente", async () => {
+    it("deve lançar AppError 409 ao trocar para um ISBN já existente", async () => {
       const outroLivro = { ...mockBook, id: "outro-id", isbn: "1234567890123" };
       repositoryMock.findById.mockResolvedValue(mockBook);
       repositoryMock.findByIsbn.mockResolvedValue(outroLivro);
@@ -225,7 +225,7 @@ describe("BookService", () => {
       repositoryMock.findById.mockResolvedValue(mockBook);
       repositoryMock.update.mockResolvedValue(mockBook);
 
-      // O ISBN e o mesmo do livro atual — nao deve verificar duplicidade
+      // O ISBN é o mesmo do livro atual — não deve verificar duplicidade
       await service.update("abc-123", { isbn: mockBook.isbn });
 
       expect(repositoryMock.findByIsbn).not.toHaveBeenCalled();
@@ -244,7 +244,7 @@ describe("BookService", () => {
       expect(result).toEqual(mockBook);
     });
 
-    it("deve lancar AppError 404 quando o livro nao existe", async () => {
+    it("deve lançar AppError 404 quando o livro não existe", async () => {
       repositoryMock.findById.mockResolvedValue(null);
 
       await expect(service.delete("nao-existe")).rejects.toMatchObject({

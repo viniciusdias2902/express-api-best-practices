@@ -1,22 +1,22 @@
-# Padroes de Projeto
+# Padrões de Projeto
 
 **Read in English: [PATTERNS.md](./PATTERNS.md)**
 
-Este documento descreve os padroes de projeto e decisoes arquiteturais utilizados neste projeto, com referencias aos arquivos reais do codigo-fonte.
+Este documento descreve os padrões de projeto e decisões arquiteturais utilizados neste projeto, com referências aos arquivos reais do código-fonte.
 
 ---
 
 ## 1. Arquitetura em Camadas (3 Camadas)
 
-A aplicacao e dividida em tres camadas distintas com fronteiras rigidas. Cada camada tem uma unica responsabilidade e so se comunica com sua vizinha imediata.
+A aplicação é dividida em três camadas distintas com fronteiras rígidas. Cada camada tem uma única responsabilidade e só se comunica com sua vizinha imediata.
 
 ```
-Controller (HTTP) → Service (Logica de Negocio) → Repository (Acesso a Dados) → Banco de Dados
+Controller (HTTP) → Service (Lógica de Negócio) → Repository (Acesso a Dados) → Banco de Dados
 ```
 
-- **Controller** — traduz requisicoes/respostas HTTP. Nao sabe nada sobre o banco de dados.
-- **Service** — aplica regras de negocio. Nao sabe nada sobre HTTP ou Prisma.
-- **Repository** — encapsula queries do banco. Nao sabe nada sobre regras de negocio ou HTTP.
+- **Controller** — traduz requisições/respostas HTTP. Não sabe nada sobre o banco de dados.
+- **Service** — aplica regras de negócio. Não sabe nada sobre HTTP ou Prisma.
+- **Repository** — encapsula queries do banco. Não sabe nada sobre regras de negócio ou HTTP.
 
 **Arquivos:**
 - `src/modules/book/book.controller.js`, `src/modules/auth/auth.controller.js`
@@ -25,9 +25,9 @@ Controller (HTTP) → Service (Logica de Negocio) → Repository (Acesso a Dados
 
 ---
 
-## 2. Injecao de Dependencias (Manual / Baseada em Factory)
+## 2. Injeção de Dependências (Manual / Baseada em Factory)
 
-Cada camada e uma **factory function** que recebe suas dependencias como parametros. Nenhum container de DI e necessario — a composicao e explicita e facil de seguir.
+Cada camada é uma **factory function** que recebe suas dependências como parâmetros. Nenhum container de DI é necessário — a composição é explícita e fácil de seguir.
 
 ```javascript
 // src/modules/book/book.routes.js (composition root)
@@ -43,23 +43,23 @@ const service = createAuthService(repository, { jwtSecret, jwtExpiresIn, refresh
 const controller = createAuthController(service);
 ```
 
-Isso torna cada camada testavel de forma independente, bastando passar objetos mock no lugar das implementacoes reais. O service de auth tambem recebe a configuracao como dependencia, mantendo-o independente do ambiente.
+Isso torna cada camada testável de forma independente, bastando passar objetos mock no lugar das implementações reais. O service de auth também recebe a configuração como dependência, mantendo-o independente do ambiente.
 
 **Arquivos:**
 - `src/modules/book/book.routes.js` (composition root)
 - `src/modules/auth/auth.routes.js` (composition root)
-- Todas as factory functions de ambos os modulos
+- Todas as factory functions de ambos os módulos
 
 ---
 
-## 3. Padrao Repository
+## 3. Padrão Repository
 
-Todo o acesso ao banco de dados e encapsulado por tras de uma interface limpa. A camada de service nunca interage diretamente com o Prisma — ela apenas chama metodos do repository.
+Todo o acesso ao banco de dados é encapsulado por trás de uma interface limpa. A camada de service nunca interage diretamente com o Prisma — ela apenas chama métodos do repository.
 
 - **Book Repository:** `create`, `findMany`, `findById`, `findByIsbn`, `update`, `delete`
 - **Auth Repository:** `createUser`, `findUserByEmail`, `findUserById`, `createRefreshToken`, `findRefreshToken`, `deleteRefreshToken`, `deleteAllRefreshTokens`
 
-Isso desacopla a logica de negocio do ORM ou banco de dados especifico sendo utilizado.
+Isso desacopla a lógica de negócio do ORM ou banco de dados específico sendo utilizado.
 
 **Arquivos:**
 - `src/modules/book/book.repository.js`
@@ -69,7 +69,7 @@ Isso desacopla a logica de negocio do ORM ou banco de dados especifico sendo uti
 
 ## 4. Composition Root
 
-O grafo de dependencias e montado em um unico lugar — o arquivo de rotas de cada modulo. Estes sao os **unicos** arquivos que importam o singleton do Prisma e conectam todas as camadas. Todo o resto recebe suas dependencias de fora.
+O grafo de dependências é montado em um único lugar — o arquivo de rotas de cada módulo. Estes são os **únicos** arquivos que importam o singleton do Prisma e conectam todas as camadas. Todo o resto recebe suas dependências de fora.
 
 **Arquivos:**
 - `src/modules/book/book.routes.js`
@@ -77,17 +77,17 @@ O grafo de dependencias e montado em um unico lugar — o arquivo de rotas de ca
 
 ---
 
-## 5. Padrao Singleton
+## 5. Padrão Singleton
 
-O `PrismaClient` e instanciado uma unica vez e compartilhado por toda a aplicacao. Isso evita a criacao de multiplos pools de conexao com o banco de dados.
+O `PrismaClient` é instanciado uma única vez e compartilhado por toda a aplicação. Isso evita a criação de múltiplos pools de conexão com o banco de dados.
 
 **Arquivo:** `src/lib/prisma.js`
 
 ---
 
-## 6. Padrao Factory Function
+## 6. Padrão Factory Function
 
-Em vez de classes, cada camada exporta uma factory function que retorna um objeto simples com metodos. Isso e JavaScript idiomatico e evita problemas com `this`, mantendo o codigo simples e funcional.
+Em vez de classes, cada camada exporta uma factory function que retorna um objeto simples com métodos. Isso é JavaScript idiomático e evita problemas com `this`, mantendo o código simples e funcional.
 
 ```javascript
 export function createBookService(repository) {
@@ -103,34 +103,34 @@ export function createBookService(repository) {
 
 ---
 
-## 7. Padrao Middleware
+## 7. Padrão Middleware
 
-Middlewares do Express sao usados para preocupacoes transversais que nao devem estar dentro da logica de negocio:
+Middlewares do Express são usados para preocupações transversais que não devem estar dentro da lógica de negócio:
 
-- **Middleware de validacao** — uma factory que recebe um schema Zod e retorna um middleware que valida o `req.body` antes de chegar ao controller.
-- **Middleware de autenticacao** — uma factory que recebe o segredo JWT e retorna um middleware que verifica o header `Authorization: Bearer <token>` e popula `req.userId`.
+- **Middleware de validação** — uma factory que recebe um schema Zod e retorna um middleware que valida o `req.body` antes de chegar ao controller.
+- **Middleware de autenticação** — uma factory que recebe o segredo JWT e retorna um middleware que verifica o header `Authorization: Bearer <token>` e popula `req.userId`.
 - **Middleware de erro** — um middleware centralizado com 4 argumentos do Express que captura todos os erros e envia respostas HTTP apropriadas.
-- **Middlewares de seguranca** — `helmet` (headers HTTP), `cors` (cross-origin) e `express-rate-limit` (protecao contra forca bruta) aplicados globalmente.
+- **Middlewares de segurança** — `helmet` (headers HTTP), `cors` (cross-origin) e `express-rate-limit` (proteção contra força bruta) aplicados globalmente.
 
 **Arquivos:**
 - `src/middlewares/validate.js`
 - `src/middlewares/authenticate.js`
 - `src/middlewares/errorHandler.js`
-- `src/app.js` (registro dos middlewares de seguranca)
+- `src/app.js` (registro dos middlewares de segurança)
 
 ---
 
 ## 8. Tratamento Centralizado de Erros
 
-Todos os erros fluem atraves do `next(error)` para um unico handler de erros. O handler categoriza os erros por tipo e responde adequadamente:
+Todos os erros fluem através do `next(error)` para um único handler de erros. O handler categoriza os erros por tipo e responde adequadamente:
 
-| Tipo de Erro | Status HTTP | Deteccao |
+| Tipo de Erro | Status HTTP | Detecção |
 |---|---|---|
-| Erro de validacao | 400 | Possui propriedade `details` |
-| Constraint unica do Prisma (P2002) | 409 | Codigo de erro do Prisma |
-| Nao encontrado do Prisma (P2025) | 404 | Codigo de erro do Prisma |
-| AppError | Dinamico | Possui propriedade `statusCode` |
-| Desconhecido | 500 | Fallback (mensagem generica, sem vazamento) |
+| Erro de validação | 400 | Possui propriedade `details` |
+| Constraint única do Prisma (P2002) | 409 | Código de erro do Prisma |
+| Não encontrado do Prisma (P2025) | 404 | Código de erro do Prisma |
+| AppError | Dinâmico | Possui propriedade `statusCode` |
+| Desconhecido | 500 | Fallback (mensagem genérica, sem vazamento) |
 
 Isso elimina blocos `try/catch` espalhados e garante respostas de erro consistentes.
 
@@ -140,12 +140,12 @@ Isso elimina blocos `try/catch` espalhados e garante respostas de erro consisten
 
 ---
 
-## 9. Validacao de Schema / Padrao DTO
+## 9. Validação de Schema / Padrão DTO
 
-Schemas Zod atuam como Data Transfer Objects (DTOs), definindo a forma exata de uma entrada valida:
+Schemas Zod atuam como Data Transfer Objects (DTOs), definindo a forma exata de uma entrada válida:
 
-- **Book:** `createBookSchema` (campos obrigatorios), `updateBookSchema` (parcial com refinamento), `listBooksQuerySchema` (query params com valores padrao)
-- **Auth:** `registerSchema` (nome, email, senha com regras de forca), `loginSchema` (email, senha), `refreshTokenSchema` (refresh token)
+- **Book:** `createBookSchema` (campos obrigatórios), `updateBookSchema` (parcial com refinamento), `listBooksQuerySchema` (query params com valores padrão)
+- **Auth:** `registerSchema` (nome, email, senha com regras de força), `loginSchema` (email, senha), `refreshTokenSchema` (refresh token)
 
 O resultado do parse substitui o `req.body` original, garantindo que dados validados e sanitizados cheguem ao controller.
 
@@ -155,11 +155,11 @@ O resultado do parse substitui o `req.body` original, garantindo que dados valid
 
 ---
 
-## 10. Organizacao por Feature (Feature-First)
+## 10. Organização por Feature (Feature-First)
 
-O codigo e organizado **por funcionalidade** (ex: `modules/book/`, `modules/auth/`) em vez de por camada tecnica (ex: `controllers/`, `services/`). Cada modulo e autocontido com suas proprias rotas, controller, service, repository, schemas e testes.
+O código é organizado **por funcionalidade** (ex: `modules/book/`, `modules/auth/`) em vez de por camada técnica (ex: `controllers/`, `services/`). Cada módulo é autocontido com suas próprias rotas, controller, service, repository, schemas e testes.
 
-Adicionar uma nova funcionalidade significa criar uma nova pasta em `modules/` — sem precisar mexer em multiplos diretorios de nivel superior.
+Adicionar uma nova funcionalidade significa criar uma nova pasta em `modules/` — sem precisar mexer em múltiplos diretórios de nível superior.
 
 ```
 src/modules/
@@ -181,9 +181,9 @@ src/modules/
 
 ---
 
-## 11. Separacao App / Server
+## 11. Separação App / Server
 
-A configuracao da aplicacao Express (`app.js`) e separada da inicializacao do servidor HTTP (`server.js`). Isso permite importar o `app` em testes (ex: com `supertest`) sem realmente iniciar o servidor.
+A configuração da aplicação Express (`app.js`) é separada da inicialização do servidor HTTP (`server.js`). Isso permite importar o `app` em testes (ex: com `supertest`) sem realmente iniciar o servidor.
 
 **Arquivos:**
 - `src/app.js`
@@ -191,56 +191,56 @@ A configuracao da aplicacao Express (`app.js`) e separada da inicializacao do se
 
 ---
 
-## 12. Padrao Access Token + Refresh Token
+## 12. Padrão Access Token + Refresh Token
 
-A autenticacao usa uma estrategia de token duplo:
+A autenticação usa uma estratégia de token duplo:
 
-- **Access token (JWT):** curta duracao (15 minutos), assinado com HS256, contem apenas o ID do usuario (claim `sub`). Verificado pelo middleware `authenticate` em cada requisicao protegida.
-- **Refresh token (opaco):** longa duracao (7 dias), um valor aleatorio gerado com `crypto.randomBytes(48)` e armazenado no banco de dados. Usado para obter um novo par de tokens sem precisar digitar as credenciais novamente.
+- **Access token (JWT):** curta duração (15 minutos), assinado com HS256, contém apenas o ID do usuário (claim `sub`). Verificado pelo middleware `authenticate` em cada requisição protegida.
+- **Refresh token (opaco):** longa duração (7 dias), um valor aleatório gerado com `crypto.randomBytes(48)` e armazenado no banco de dados. Usado para obter um novo par de tokens sem precisar digitar as credenciais novamente.
 
-**Rotacao de refresh tokens:** cada refresh token so pode ser usado uma vez. Ao ser usado, o token antigo e deletado e um novo e criado. Isso limita o dano de um token comprometido — se um atacante usar um token roubado, a proxima tentativa de refresh do usuario legitimo falhara, sinalizando um possivel vazamento.
+**Rotação de refresh tokens:** cada refresh token só pode ser usado uma vez. Ao ser usado, o token antigo é deletado e um novo é criado. Isso limita o dano de um token comprometido — se um atacante usar um token roubado, a próxima tentativa de refresh do usuário legítimo falhará, sinalizando um possível vazamento.
 
 **Arquivos:**
-- `src/modules/auth/auth.service.js` (geracao e rotacao de tokens)
-- `src/middlewares/authenticate.js` (verificacao de token)
+- `src/modules/auth/auth.service.js` (geração e rotação de tokens)
+- `src/middlewares/authenticate.js` (verificação de token)
 
 ---
 
-## 13. Barreira de Autenticacao por Rota
+## 13. Barreira de Autenticação por Rota
 
-Rotas publicas e protegidas sao separadas pela ordem de registro dos middlewares no `app.js`:
+Rotas públicas e protegidas são separadas pela ordem de registro dos middlewares no `app.js`:
 
 ```javascript
-// Rotas publicas (antes do authenticate)
+// Rotas públicas (antes do authenticate)
 app.use("/api/auth", authRoutes);
 
-// Barreira de autenticacao
+// Barreira de autenticação
 app.use(authenticate(jwtSecret));
 
 // Rotas protegidas (depois do authenticate)
 app.use("/api/books", bookRoutes);
 ```
 
-Essa abordagem aplica autenticacao a todas as rotas registradas apos o middleware, sem precisar adicionar `authenticate` a cada rota individual. Adicionar um novo modulo protegido requer apenas registra-lo apos a barreira.
+Essa abordagem aplica autenticação a todas as rotas registradas após o middleware, sem precisar adicionar `authenticate` a cada rota individual. Adicionar um novo módulo protegido requer apenas registrá-lo após a barreira.
 
 **Arquivo:** `src/app.js`
 
 ---
 
-## Resumo dos Padroes
+## Resumo dos Padrões
 
-| Padrao | Onde | Por que |
+| Padrão | Onde | Por quê |
 |---|---|---|
-| Arquitetura em Camadas | `modules/*/*.js` | Separacao de responsabilidades |
-| Injecao de Dependencias | Factory functions + arquivos de rotas | Testabilidade, baixo acoplamento |
-| Padrao Repository | `*.repository.js` | Desacoplar logica de negocio do ORM |
-| Composition Root | `*.routes.js` | Ponto unico de composicao por modulo |
-| Singleton | `lib/prisma.js` | Conexao compartilhada com o banco |
-| Factory Functions | Todas as camadas | JS idiomatico, evita problemas com `this` |
-| Middleware | `middlewares/*.js` | Preocupacoes transversais |
+| Arquitetura em Camadas | `modules/*/*.js` | Separação de responsabilidades |
+| Injeção de Dependências | Factory functions + arquivos de rotas | Testabilidade, baixo acoplamento |
+| Padrão Repository | `*.repository.js` | Desacoplar lógica de negócio do ORM |
+| Composition Root | `*.routes.js` | Ponto único de composição por módulo |
+| Singleton | `lib/prisma.js` | Conexão compartilhada com o banco |
+| Factory Functions | Todas as camadas | JS idiomático, evita problemas com `this` |
+| Middleware | `middlewares/*.js` | Preocupações transversais |
 | Erros Centralizados | `errorHandler.js` + `AppError.js` | Respostas de erro consistentes |
-| Validacao / DTO | `*.schema.js` + `validate.js` | Sanitizacao de entrada na borda |
-| Modulos por Feature | Diretorio `modules/` | Organizacao escalavel |
-| Separacao App / Server | `app.js` + `server.js` | Testabilidade |
-| Access + Refresh Tokens | `auth.service.js` + `authenticate.js` | Autenticacao segura e stateless |
-| Barreira de Auth por Rota | Ordem dos middlewares no `app.js` | Separacao limpa publico/protegido |
+| Validação / DTO | `*.schema.js` + `validate.js` | Sanitização de entrada na borda |
+| Módulos por Feature | Diretório `modules/` | Organização escalável |
+| Separação App / Server | `app.js` + `server.js` | Testabilidade |
+| Access + Refresh Tokens | `auth.service.js` + `authenticate.js` | Autenticação segura e stateless |
+| Barreira de Auth por Rota | Ordem dos middlewares no `app.js` | Separação limpa público/protegido |

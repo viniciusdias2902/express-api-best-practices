@@ -2,14 +2,14 @@ import { vi, describe, it, expect } from "vitest";
 import { createAuthRepository } from "../auth.repository.js";
 
 /**
- * Testes unitarios do Auth Repository.
+ * Testes unitários do Auth Repository.
  *
- * Segue a mesma estrategia do BookRepository:
+ * Segue a mesma estratégia do BookRepository:
  * - Cria um mock do PrismaClient
  * - Injeta no repository via factory function
- * - Verifica se os metodos do Prisma sao chamados corretamente
+ * - Verifica se os métodos do Prisma são chamados corretamente
  *
- * Testa operacoes de User e RefreshToken.
+ * Testa operações de User e RefreshToken.
  */
 
 // Mock do PrismaClient
@@ -49,7 +49,7 @@ const mockRefreshToken = {
 
 describe("AuthRepository", () => {
   describe("createUser", () => {
-    it("deve criar o usuario e retornar sem o campo password", async () => {
+    it("deve criar o usuário e retornar sem o campo password", async () => {
       prismaMock.user.create.mockResolvedValue(mockUser);
 
       const data = {
@@ -61,7 +61,7 @@ describe("AuthRepository", () => {
       const result = await repository.createUser(data);
 
       expect(prismaMock.user.create).toHaveBeenCalledWith({ data });
-      // Nao deve conter password no retorno
+      // Não deve conter password no retorno
       expect(result).not.toHaveProperty("password");
       expect(result).toEqual({
         id: mockUser.id,
@@ -74,7 +74,7 @@ describe("AuthRepository", () => {
   });
 
   describe("findUserByEmail", () => {
-    it("deve buscar usuario pelo email (com password)", async () => {
+    it("deve buscar usuário pelo email (com password)", async () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser);
 
       const result = await repository.findUserByEmail("maria@email.com");
@@ -82,12 +82,12 @@ describe("AuthRepository", () => {
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
         where: { email: "maria@email.com" },
       });
-      // Deve conter password (necessario para login)
+      // Deve conter password (necessário para login)
       expect(result).toHaveProperty("password");
       expect(result).toEqual(mockUser);
     });
 
-    it("deve retornar null quando o usuario nao existe", async () => {
+    it("deve retornar null quando o usuário não existe", async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 
       const result = await repository.findUserByEmail("naoexiste@email.com");
@@ -97,7 +97,7 @@ describe("AuthRepository", () => {
   });
 
   describe("findUserById", () => {
-    it("deve buscar usuario pelo ID (sem password)", async () => {
+    it("deve buscar usuário pelo ID (sem password)", async () => {
       const { password: _, ...userWithoutPassword } = mockUser;
       prismaMock.user.findUnique.mockResolvedValue(userWithoutPassword);
 
@@ -140,7 +140,7 @@ describe("AuthRepository", () => {
       expect(result).toEqual(mockRefreshToken);
     });
 
-    it("deve retornar null quando o token nao existe", async () => {
+    it("deve retornar null quando o token não existe", async () => {
       prismaMock.refreshToken.findUnique.mockResolvedValue(null);
 
       const result = await repository.findRefreshToken("token-inexistente");
@@ -163,7 +163,7 @@ describe("AuthRepository", () => {
   });
 
   describe("deleteAllRefreshTokens", () => {
-    it("deve deletar todos os refresh tokens de um usuario", async () => {
+    it("deve deletar todos os refresh tokens de um usuário", async () => {
       prismaMock.refreshToken.deleteMany.mockResolvedValue({ count: 3 });
 
       const result = await repository.deleteAllRefreshTokens("user-123");

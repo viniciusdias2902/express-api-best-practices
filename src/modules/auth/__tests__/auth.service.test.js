@@ -1,28 +1,28 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 /**
- * Testes unitarios do Auth Service.
+ * Testes unitários do Auth Service.
  *
- * Mockamos o REPOSITORY e as dependencias externas (argon2 e jose).
- * O service nao sabe que o Prisma existe — so conhece o repository.
+ * Mockamos o REPOSITORY e as dependências externas (argon2 e jose).
+ * O service não sabe que o Prisma existe — só conhece o repository.
  *
- * Testamos a logica de negocio:
- * - Registro: email duplicado, hash de senha, geracao de tokens
- * - Login: credenciais invalidas, verificacao de senha
- * - Refresh: token invalido, expirado, rotacao
- * - Logout: revogacao de token, idempotencia
+ * Testamos a lógica de negócio:
+ * - Registro: email duplicado, hash de senha, geração de tokens
+ * - Login: credenciais inválidas, verificação de senha
+ * - Refresh: token inválido, expirado, rotação
+ * - Logout: revogação de token, idempotência
  *
- * No Vitest, vi.mock() possui hoisting automatico — ele e movido
- * para o topo do arquivo antes da execucao, independente de onde
- * foi escrito. Isso permite usar imports estaticos normais ao
- * inves do pattern jest.unstable_mockModule + await import().
+ * No Vitest, vi.mock() possui hoisting automático — ele é movido
+ * para o topo do arquivo antes da execução, independente de onde
+ * foi escrito. Isso permite usar imports estáticos normais ao
+ * invés do pattern jest.unstable_mockModule + await import().
  */
 
-// ─── Mocks de modulos ESM ────────────────────────────────────────
+// ─── Mocks de módulos ESM ────────────────────────────────────────
 //
 // vi.hoisted() retorna valores que existem ANTES do hoisting do vi.mock().
 // Isso resolve o problema de "Cannot access before initialization"
-// que ocorre quando vi.mock() e movido para o topo do arquivo.
+// que ocorre quando vi.mock() é movido para o topo do arquivo.
 
 const { mockHash, mockVerify, mockSignJWT } = vi.hoisted(() => ({
   mockHash: vi.fn(),
@@ -44,7 +44,7 @@ vi.mock("jose", () => ({
   })),
 }));
 
-// Imports estaticos — funcionam porque vi.mock() tem hoisting automatico
+// Imports estáticos — funcionam porque vi.mock() tem hoisting automático
 import { createAuthService } from "../auth.service.js";
 import { AppError } from "../../../errors/AppError.js";
 
@@ -88,13 +88,13 @@ const mockUserWithoutPassword = {
 
 describe("AuthService", () => {
   beforeEach(() => {
-    // Configura retornos padrao dos mocks
+    // Configura retornos padrão dos mocks
     mockSignJWT.mockResolvedValue("mocked-jwt-token");
     repositoryMock.createRefreshToken.mockResolvedValue({});
   });
 
   describe("register", () => {
-    it("deve registrar um usuario e retornar tokens", async () => {
+    it("deve registrar um usuário e retornar tokens", async () => {
       repositoryMock.findUserByEmail.mockResolvedValue(null);
       mockHash.mockResolvedValue("$argon2id$hashedpassword");
       repositoryMock.createUser.mockResolvedValue(mockUserWithoutPassword);
@@ -121,7 +121,7 @@ describe("AuthService", () => {
       expect(result).toHaveProperty("refreshToken");
     });
 
-    it("deve lancar AppError 409 quando o email ja existe", async () => {
+    it("deve lançar AppError 409 quando o email já existe", async () => {
       repositoryMock.findUserByEmail.mockResolvedValue(mockUser);
 
       const data = {
@@ -141,7 +141,7 @@ describe("AuthService", () => {
   });
 
   describe("login", () => {
-    it("deve autenticar e retornar tokens com usuario sem password", async () => {
+    it("deve autenticar e retornar tokens com usuário sem password", async () => {
       repositoryMock.findUserByEmail.mockResolvedValue(mockUser);
       mockVerify.mockResolvedValue(true);
 
@@ -160,7 +160,7 @@ describe("AuthService", () => {
       expect(result).toHaveProperty("refreshToken");
     });
 
-    it("deve lancar AppError 401 quando o email nao existe", async () => {
+    it("deve lançar AppError 401 quando o email não existe", async () => {
       repositoryMock.findUserByEmail.mockResolvedValue(null);
 
       const data = { email: "naoexiste@email.com", password: "Qualquer1" };
@@ -172,7 +172,7 @@ describe("AuthService", () => {
       });
     });
 
-    it("deve lancar AppError 401 quando a senha esta errada", async () => {
+    it("deve lançar AppError 401 quando a senha está errada", async () => {
       repositoryMock.findUserByEmail.mockResolvedValue(mockUser);
       mockVerify.mockResolvedValue(false);
 
@@ -195,7 +195,7 @@ describe("AuthService", () => {
       createdAt: new Date(),
     };
 
-    it("deve gerar novos tokens e deletar o antigo (rotacao)", async () => {
+    it("deve gerar novos tokens e deletar o antigo (rotação)", async () => {
       repositoryMock.findRefreshToken.mockResolvedValue(storedToken);
       repositoryMock.deleteRefreshToken.mockResolvedValue(storedToken);
 
@@ -211,7 +211,7 @@ describe("AuthService", () => {
       expect(result).toHaveProperty("refreshToken");
     });
 
-    it("deve lancar AppError 401 quando o refresh token nao existe", async () => {
+    it("deve lançar AppError 401 quando o refresh token não existe", async () => {
       repositoryMock.findRefreshToken.mockResolvedValue(null);
 
       await expect(service.refresh("token-inexistente")).rejects.toThrow(
@@ -225,7 +225,7 @@ describe("AuthService", () => {
       });
     });
 
-    it("deve lancar AppError 401 quando o refresh token esta expirado", async () => {
+    it("deve lançar AppError 401 quando o refresh token está expirado", async () => {
       const expiredToken = {
         ...storedToken,
         expiresAt: new Date(Date.now() - 1000), // passado
@@ -269,10 +269,10 @@ describe("AuthService", () => {
       );
     });
 
-    it("deve ser idempotente — nao lancar erro quando token nao existe", async () => {
+    it("deve ser idempotente — não lançar erro quando token não existe", async () => {
       repositoryMock.findRefreshToken.mockResolvedValue(null);
 
-      // Nao deve lancar erro
+      // Não deve lançar erro
       await expect(
         service.logout("token-inexistente")
       ).resolves.toBeUndefined();

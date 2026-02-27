@@ -8,37 +8,37 @@ import { authenticate } from "./middlewares/authenticate.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
 /**
- * Configuracao da aplicacao Express.
+ * Configuração da aplicação Express.
  *
- * Separamos a criacao do app (app.js) do servidor HTTP (server.js).
- * Isso e uma boa pratica porque:
+ * Separamos a criação do app (app.js) do servidor HTTP (server.js).
+ * Isso é uma boa prática porque:
  *
- * 1. Nos testes, importamos so o app (sem subir o servidor)
- * 2. O server.js fica responsavel apenas por "ouvir" a porta
- * 3. Facilita testes de integracao com supertest no futuro
+ * 1. Nos testes, importamos só o app (sem subir o servidor)
+ * 2. O server.js fica responsável apenas por "ouvir" a porta
+ * 3. Facilita testes de integração com supertest no futuro
  */
 const app = express();
 
-// ─── Middlewares de Seguranca ─────────────────────────────────────
+// ─── Middlewares de Segurança ─────────────────────────────────────
 
 /**
- * Helmet: define headers HTTP de seguranca automaticamente.
+ * Helmet: define headers HTTP de segurança automaticamente.
  * Protege contra ataques como clickjacking, XSS, sniffing de MIME type, etc.
  */
 app.use(helmet());
 
 /**
  * CORS: habilita Cross-Origin Resource Sharing.
- * Em producao, configure a opcao `origin` para aceitar apenas dominios confiados.
+ * Em produção, configure a opção `origin` para aceitar apenas domínios confiados.
  */
 app.use(cors());
 
 /**
- * Rate Limiting: limita o numero de requests por IP.
- * Protege contra ataques de forca bruta e abuso da API.
+ * Rate Limiting: limita o número de requests por IP.
+ * Protege contra ataques de força bruta e abuso da API.
  *
- * Configuracao padrao: 100 requests a cada 15 minutos por IP.
- * A mensagem segue o padrao de erro da aplicacao.
+ * Configuração padrão: 100 requests a cada 15 minutos por IP.
+ * A mensagem segue o padrão de erro da aplicação.
  */
 app.use(
   rateLimit({
@@ -46,7 +46,7 @@ app.use(
     limit: 100,
     standardHeaders: "draft-7",
     legacyHeaders: false,
-    message: { error: "Muitas requisicoes. Tente novamente mais tarde." },
+    message: { error: "Muitas requisições. Tente novamente mais tarde." },
   })
 );
 
@@ -58,29 +58,29 @@ app.use(express.json());
 
 /**
  * GET /api/health
- * Rota publica util para monitoramento e deploy.
+ * Rota pública útil para monitoramento e deploy.
  */
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// ─── Rotas Publicas ───────────────────────────────────────────────
+// ─── Rotas Públicas ───────────────────────────────────────────────
 
 /**
- * Rotas de autenticacao (registro, login, refresh, logout).
- * Sao publicas — nao exigem token de acesso.
+ * Rotas de autenticação (registro, login, refresh, logout).
+ * São públicas — não exigem token de acesso.
  */
 app.use("/api/auth", authRoutes);
 
-// ─── Middleware de Autenticacao ───────────────────────────────────
+// ─── Middleware de Autenticação ───────────────────────────────────
 
 /**
- * A partir daqui, todas as rotas exigem autenticacao.
+ * A partir daqui, todas as rotas exigem autenticação.
  * O middleware authenticate() verifica o JWT no header Authorization
  * e disponibiliza req.userId para os controllers.
  *
  * A ordem de registro importa:
- * 1. Rotas publicas (health, auth) ficam ANTES do authenticate
+ * 1. Rotas públicas (health, auth) ficam ANTES do authenticate
  * 2. Rotas protegidas (books) ficam DEPOIS
  */
 const jwtSecret = new TextEncoder().encode(process.env.JWT_SECRET);
@@ -89,8 +89,8 @@ app.use(authenticate(jwtSecret));
 // ─── Rotas Protegidas ─────────────────────────────────────────────
 
 /**
- * Rotas do modulo book — requerem autenticacao.
- * O usuario precisa enviar um access token valido no header:
+ * Rotas do módulo book — requerem autenticação.
+ * O usuário precisa enviar um access token válido no header:
  * Authorization: Bearer <token>
  */
 app.use("/api/books", bookRoutes);
@@ -98,7 +98,7 @@ app.use("/api/books", bookRoutes);
 // ─── Middleware de Erro ───────────────────────────────────────────
 
 /**
- * Middleware de erro — DEVE ser registrado por ultimo.
+ * Middleware de erro — DEVE ser registrado por último.
  * Captura todos os erros passados via next(error).
  */
 app.use(errorHandler);

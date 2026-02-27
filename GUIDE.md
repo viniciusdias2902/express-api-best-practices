@@ -1,6 +1,6 @@
 # Guia Educacional: Entendendo a Arquitetura de uma API REST
 
-> **This guide is available in Portuguese only.** Se precisar de uma referencia em ingles, consulte os comentarios no proprio codigo-fonte e o [PATTERNS.md](./PATTERNS.md).
+> **This guide is available in Portuguese only.** Se precisar de uma referência em inglês, consulte os comentários no próprio código-fonte e o [PATTERNS.md](./PATTERNS.md).
 
 Este documento não é um README. Ele foi escrito como se fosse uma aula — com calma, com analogias, e com a intenção de que você termine a leitura entendendo **por que** cada decisão foi tomada, não apenas **o que** foi feito.
 
@@ -107,7 +107,7 @@ learning-api/
 │   └── errors/
 │       └── AppError.js              # Classe de erro customizada
 ├── prisma.config.mjs                # Configuração do CLI do Prisma
-├── jest.config.js                   # Configuração dos testes
+├── vitest.config.js                 # Configuração dos testes
 ├── package.json                     # Dependências e scripts
 ├── .env                             # Variáveis de ambiente (NÃO vai pro git)
 └── .env.example                     # Template do .env (vai pro git)
@@ -698,20 +698,20 @@ Um teste unitário verifica se uma **unidade isolada** de código funciona corre
 
 ### O que são mocks
 
-Mocks são **objetos falsos** que simulam o comportamento de dependências reais. No Jest:
+Mocks são **objetos falsos** que simulam o comportamento de dependências reais. No Vitest:
 
 ```javascript
 const repository = {
-  findByIsbn: jest.fn(),  // Função "espiã" — registra chamadas
-  create: jest.fn(),
+  findByIsbn: vi.fn(),  // Função "espiã" — registra chamadas
+  create: vi.fn(),
 };
 ```
 
-Uma `jest.fn()`:
+Uma `vi.fn()`:
 - Registra **se** foi chamada
 - Registra **quantas vezes** foi chamada
 - Registra **com quais argumentos** foi chamada
-- Pode **retornar um valor pré-definido**: `jest.fn().mockResolvedValue(livro)`
+- Pode **retornar um valor pré-definido**: `vi.fn().mockResolvedValue(livro)`
 
 ### A estratégia de mock por camada
 
@@ -734,8 +734,8 @@ Isso significa que:
 ```javascript
 // Mock do repository
 const repositoryMock = {
-  findByIsbn: jest.fn(),
-  create: jest.fn(),
+  findByIsbn: vi.fn(),
+  create: vi.fn(),
 };
 
 // Cria o service com o mock injetado
@@ -815,7 +815,7 @@ const repository = createBookRepository(prisma);
 const service = createBookService(repository);
 
 // Nos testes
-const mockRepository = { create: jest.fn() };
+const mockRepository = { create: vi.fn() };
 const service = createBookService(mockRepository);
 ```
 

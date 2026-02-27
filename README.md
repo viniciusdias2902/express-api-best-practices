@@ -24,7 +24,7 @@ If you are learning backend development, use this codebase as a reference to und
 | Helmet | — | HTTP security headers |
 | CORS | — | Cross-Origin Resource Sharing |
 | express-rate-limit | — | Rate limiting |
-| Jest | 30 | Testing framework |
+| Vitest | 3 | Testing framework |
 
 ## Project Structure
 

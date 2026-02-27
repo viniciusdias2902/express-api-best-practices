@@ -3,10 +3,10 @@ import { createAuthController } from "../auth.controller.js";
 import { AppError } from "../../../errors/AppError.js";
 
 /**
- * Testes unitarios do Auth Controller.
+ * Testes unitários do Auth Controller.
  *
- * Segue a mesma estrategia do BookController:
- * - Mocka o SERVICE (nao o repository nem o Prisma)
+ * Segue a mesma estratégia do BookController:
+ * - Mocka o SERVICE (não o repository nem o Prisma)
  * - Mocka req, res e next do Express
  * - Verifica status HTTP e formato da response
  */
@@ -61,7 +61,7 @@ function createMocks(overrides = {}) {
 
 describe("AuthController", () => {
   describe("register", () => {
-    it("deve retornar 201 com usuario e tokens", async () => {
+    it("deve retornar 201 com usuário e tokens", async () => {
       serviceMock.register.mockResolvedValue(mockTokens);
       const { req, res, next } = createMocks({
         body: {
@@ -79,7 +79,7 @@ describe("AuthController", () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it("deve chamar next(error) quando o service lanca erro", async () => {
+    it("deve chamar next(error) quando o service lança erro", async () => {
       const error = new AppError("Já existe um usuário com este email.", 409);
       serviceMock.register.mockRejectedValue(error);
       const { req, res, next } = createMocks({
@@ -93,7 +93,7 @@ describe("AuthController", () => {
   });
 
   describe("login", () => {
-    it("deve retornar 200 com usuario e tokens", async () => {
+    it("deve retornar 200 com usuário e tokens", async () => {
       serviceMock.login.mockResolvedValue(mockTokens);
       const { req, res, next } = createMocks({
         body: { email: "maria@email.com", password: "MinhaSenh4" },
@@ -106,7 +106,7 @@ describe("AuthController", () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it("deve chamar next(error) quando credenciais sao invalidas", async () => {
+    it("deve chamar next(error) quando credenciais são inválidas", async () => {
       const error = new AppError("Credenciais inválidas.", 401);
       serviceMock.login.mockRejectedValue(error);
       const { req, res, next } = createMocks({
@@ -137,7 +137,7 @@ describe("AuthController", () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it("deve chamar next(error) quando o refresh token e invalido", async () => {
+    it("deve chamar next(error) quando o refresh token é inválido", async () => {
       const error = new AppError("Refresh token inválido.", 401);
       serviceMock.refresh.mockRejectedValue(error);
       const { req, res, next } = createMocks({
